@@ -36,14 +36,9 @@
 # Configuration
 # =============
 
-# size of generated rootfs - in megabytes
-fssize=1000
-# debian mirror to use
-mirror='http://ftp.ch.debian.org/debian/'
-# hostname
-hostname='htcleo'
-# username, password of regular user, root password
-username='htcleo'
+# use local configuration file for custom configs
+source options.conf
+
 # use a list of packages to install, sed is used to parse comments
 packages=`sed -e 's/\#.*//' -e 's/[ ^I]*$$//' -e '/^$$/ d' packages`
 
