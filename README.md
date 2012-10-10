@@ -1,5 +1,7 @@
 # Debian Linux on HTC HD2 (HTC Leo) with E17
 
+> *[Original thread on XDA](http://forum.xda-developers.com/showthread.php?t=1729130)*
+
 ## Foreword from bardzudny
 
 Lately I have found myself experimenting with Debian on my beloved Leo. It's very much WIP, but even right now it may be fun to play around for some. And most of the stuff that *doesn't* work, well, solutions are in the line of sight.
@@ -35,6 +37,7 @@ It boots directly into an Enlightement 17 Mobile desktop and allows you to conne
 * Landscape mode (easy)
 * Hardware buttons (easy)
 * Bluetooth (at least partial support should be easy)
+* Have an option for NativeSD support
 * ??? to be continued
 
 ## Wish-list (the less important stuff):
@@ -60,7 +63,7 @@ The kernel sources are in a seperate file found in the links below or in this (l
 
 [Please refer to this htc-linux wiki page for compiling](http://htc-linux.org/wiki/index.php?title=QuickDeveloperStartGuide#Kernel). Use htcleo-gnu_defconfig (it's in arch/arm/configs/ directory). 
 
-## File Links and Mirrors
+## Links, Files and Mirrors
 
 ### Debian Linux for HD2 with E17
 
