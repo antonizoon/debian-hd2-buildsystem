@@ -1,0 +1,118 @@
+#!/bin/bash
+#
+# Debian for HTC HD2 v0.1 alpha
+# 
+# This script generates Debian Unstable rootfs for HTC HD2 (HTC Leo)
+# 
+# It is recommended to run it on Debian Unstable host system
+#
+# Required packages (may be incomplete): binfmt-support, qemu-arm-static, debootstrap, 
+#
+# Usage (run as root):
+# './createrootfs -r' - creates generic rootfs, without majority of customizations
+# './createrootfs -p' - customizes rootfs created by './install -r' to suit HTC HD2
+#
+# To generate full rootfs from scratch, you have to run both of these commands, as in './install -r && ./install -p'
+#
+# IMPORTANT!!!
+# './createrootfs -p' will ask you which users should be able to start Xorg - it's important that you choose 'Anybody', or it will all go to hell (you won't be able to start Xorg as regular user).
+#
+
+# size of generated rootfs - in megabytes
+fssize=1000
+# debian mirror to use
+mirror='http://ftp.ch.debian.org/debian/'
+# hostname
+hostname='htcleo'
+# username, password of regular user, root password
+username='htcleo'
+# self-explanatory
+packages='wpasupplicant openssh-server xserver-xorg xinit screen alsa-utils xserver-xorg xinit screen alsa-utils xserver-xorg-input-tslib libts-bin e17 xterm psmisc wicd-gtk locales'
+
+
+
+# create our working directory
+
+mkdir /debhd2-target/
+
+case $1 in
+	'-r')
+		dd if=/dev/zero of=rootfs.ext4 bs=1MB count=$fssize
+		mkfs.ext4 -F rootfs.ext4
+		mount rootfs.ext4 /debhd2-target/
+		debootstrap --verbose --arch armel --foreign sid /debhd2-target/ $mirror 
+		cp /usr/bin/qemu-arm-static /debhd2-target/usr/bin/
+		chroot /debhd2-target/ /debootstrap/debootstrap --second-stage
+
+		echo '\nrootfs.ext4 was created!\n'
+
+		;;
+	'-p')
+		mount rootfs.ext4 /debhd2-target/
+		
+		# Recommended packages are still abused; we want to go as lightweight as possible
+
+		echo 'APT::Install-Recommends "0";' >> /debhd2-target/etc/apt/apt.conf
+		echo 'APT::Install-Suggests "0";' >> /debhd2-target/etc/apt/apt.conf
+
+		# configure apt and install packages
+
+		echo 'deb '$mirror' unstable main' > /debhd2-target/etc/apt/sources.list
+		chroot /debhd2-target/ aptitude update
+		chroot /debhd2-target/ aptitude install $packages
+		chroot /debhd2-target/ aptitude clean
+		chroot /debhd2-target/ dpkg-reconfigure locales	
+		chroot /debhd2-target/ dpkg-reconfigure x11-common
+		chroot /debhd2-target/ /etc/init.d/ssh stop
+		
+		# set hostname
+
+		echo $hostname > /debhd2-target/etc/hostname
+
+		# make sure kernel modules get loaded
+
+		echo 'bcm4329' >> /debhd2-target/etc/modules
+		echo 'alsa-mix-htc-leo' >> /debhd2-target/etc/modules
+
+#		echo -e 'auto eth0\niface eth0 inet dhcp\nwpa-ssid "neostrada_12ac"\nwpa-psk "samochodzikarnia"' >> /debhd2-target/etc/network/interfaces
+##		echo -e '#!/bin/sh -e\n\nping 10.0.0.1 &\n\nwhile [ 1 ]; do su -c startx '$username'; done\n\nexit 0' > /debhd2-target/etc/rc.local
+		echo -e '#!/bin/sh -e\n\nwhile [ 1 ]; do su -c startx '$username'; done\n\nexit 0'  > /debhd2-target/etc/rc.local
+
+		cp -r hd2files/rootfs/* /debhd2-target/
+		cp hd2files/debs/*deb /debhd2-target/root/
+		chroot /debhd2-target/ bash -c 'dpkg -i /root/*deb'
+
+		# prevent upgrading udev to newer version (it has problems with 2.6.32 kernel that we currently use)
+
+		chroot /debhd2-target/ aptitude hold libudev0 udev
+
+		# set root password
+
+		echo -e '\nPlease enter your desired root password.\n'
+		chroot /debhd2-target/ bash -c 'passwd'
+		echo -e '\nRoot password set!\n'
+
+		# create regular user
+
+		echo -e '\nPlease enter data for your regular user '$username'.\n'
+		chroot /debhd2-target/ bash -c 'adduser '$username
+		chroot /debhd2-target/ addgroup $username audio
+		chroot /debhd2-target/ addgroup $username netdev
+		echo -e '\nUser account '$username' created!\n'
+
+		# clean up
+
+		rm /debhd2-target/root/*deb
+		rm /debhd2-target/usr/bin/qemu-arm-static
+
+		echo -e '\nrootfs.ext4 was customized!\n'
+
+		;;
+esac
+
+# clean up
+
+umount /debhd2-target/
+rm -r /debhd2-target/
+
+exit 0

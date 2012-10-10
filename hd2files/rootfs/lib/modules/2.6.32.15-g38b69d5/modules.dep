@@ -1,0 +1,23 @@
+kernel/fs/cifs/cifs.ko:
+kernel/fs/fuse/fuse.ko:
+kernel/drivers/net/wireless/bcm4329_204/bcm4329.ko:
+kernel/drivers/net/kineto_gan.ko:
+kernel/drivers/net/tun.ko:
+kernel/drivers/net/msm_rmnet.ko:
+kernel/drivers/usb/storage/usb-storage.ko: kernel/drivers/scsi/scsi_mod.ko
+kernel/drivers/usb/storage/ums-alauda.ko: kernel/drivers/usb/storage/usb-storage.ko kernel/drivers/scsi/scsi_mod.ko
+kernel/drivers/usb/storage/ums-cypress.ko: kernel/drivers/usb/storage/usb-storage.ko kernel/drivers/scsi/scsi_mod.ko
+kernel/drivers/usb/storage/ums-datafab.ko: kernel/drivers/usb/storage/usb-storage.ko kernel/drivers/scsi/scsi_mod.ko
+kernel/drivers/usb/storage/ums-freecom.ko: kernel/drivers/usb/storage/usb-storage.ko kernel/drivers/scsi/scsi_mod.ko
+kernel/drivers/usb/storage/ums-isd200.ko: kernel/drivers/usb/storage/usb-storage.ko kernel/drivers/scsi/scsi_mod.ko
+kernel/drivers/usb/storage/ums-jumpshot.ko: kernel/drivers/usb/storage/usb-storage.ko kernel/drivers/scsi/scsi_mod.ko
+kernel/drivers/usb/storage/ums-karma.ko: kernel/drivers/usb/storage/usb-storage.ko kernel/drivers/scsi/scsi_mod.ko
+kernel/drivers/usb/storage/ums-onetouch.ko: kernel/drivers/usb/storage/usb-storage.ko kernel/drivers/scsi/scsi_mod.ko
+kernel/drivers/usb/storage/ums-sddr09.ko: kernel/drivers/usb/storage/usb-storage.ko kernel/drivers/scsi/scsi_mod.ko
+kernel/drivers/usb/storage/ums-sddr55.ko: kernel/drivers/usb/storage/usb-storage.ko kernel/drivers/scsi/scsi_mod.ko
+kernel/drivers/usb/storage/ums-usbat.ko: kernel/drivers/usb/storage/usb-storage.ko kernel/drivers/scsi/scsi_mod.ko
+kernel/drivers/media/video/gspca/gspca_main.ko:
+kernel/drivers/scsi/scsi_mod.ko:
+kernel/drivers/scsi/scsi_wait_scan.ko:
+kernel/sound/htcleo/alsa-pcm-htc-leo.ko:
+kernel/sound/htcleo/alsa-mix-htc-leo.ko: kernel/sound/htcleo/alsa-pcm-htc-leo.ko
