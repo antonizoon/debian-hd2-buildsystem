@@ -1,22 +1,40 @@
 #!/bin/bash
-#
-# Debian for HTC HD2 v0.1 alpha
-# 
-# This script generates Debian Unstable rootfs for HTC HD2 (HTC Leo)
-# 
-# It is recommended to run it on Debian Unstable host system
-#
-# Required packages (may be incomplete): binfmt-support, qemu-arm-static, debootstrap, 
-#
-# Usage (run as root):
-# './createrootfs -r' - creates generic rootfs, without majority of customizations
-# './createrootfs -p' - customizes rootfs created by './install -r' to suit HTC HD2
-#
-# To generate full rootfs from scratch, you have to run both of these commands, as in './install -r && ./install -p'
-#
-# IMPORTANT!!!
-# './createrootfs -p' will ask you which users should be able to start Xorg - it's important that you choose 'Anybody', or it will all go to hell (you won't be able to start Xorg as regular user).
-#
+
+## ============================================================ ##
+## 			Debian HD2 Buildsystem			##
+## ============================================================ ##
+## 								##
+## Created by bardzuny from XDA and antonizoon (Lawrence Wu)	##
+## 								##
+## Description							##
+## ===========							##
+## This script creates a Debian Unstable rootfs for the HTC HD2 ##
+## Script is best run in Debian Unstable host system		##
+## 								##
+## Required packages (may be incomplete)			##
+## =====================================			##
+## binfmt-support, qemu-arm-static, debootstrap			##
+## 								##
+## Usage (run as root)						##
+## ===================						##
+## './createrootfs -r' - creates generic rootfs, without 	##
+## majority of customizations					##
+## './createrootfs -p' - customizes rootfs created by 		##
+## './install -r' to suit HTC HD2				##
+##								##
+## To generate full rootfs from scratch, you have to run both	## 
+## of these commands, as in './install -r && ./install -p'	##
+##								##
+## IMPORTANT!!!							##
+## ============							##
+## './createrootfs -p' will ask you which users should be able	## 
+## to start Xorg - it's important that you choose 'Anybody', 	##
+## or you won't be able to start Xorg as regular user!		##
+## 								##
+## ============================================================ ##
+
+# Configuration
+# =============
 
 # size of generated rootfs - in megabytes
 fssize=1000
@@ -26,13 +44,13 @@ mirror='http://ftp.ch.debian.org/debian/'
 hostname='htcleo'
 # username, password of regular user, root password
 username='htcleo'
-# self-explanatory
-packages='wpasupplicant openssh-server xserver-xorg xinit screen alsa-utils xserver-xorg xinit screen alsa-utils xserver-xorg-input-tslib libts-bin e17 xterm psmisc wicd-gtk locales'
+# use a list of packages to install, sed is used to parse comments
+packages=`sed -e 's/\#.*//' -e 's/[ ^I]*$$//' -e '/^$$/ d' packages`
 
-
+# Build the Image
+# ===============
 
 # create our working directory
-
 mkdir /debhd2-target/
 
 case $1 in
