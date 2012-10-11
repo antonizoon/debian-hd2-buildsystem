@@ -52,7 +52,7 @@ _PKGDIR=`pwd`
 mkdir "$_PKGDIR/debhd2-target/"
 
 # Set our working directory
-_BUILDDIR="$_PKGDIR/debhd2target"
+_BUILDDIR="$_PKGDIR/debhd2-target"
 
 # Build the Image
 # ===============
