@@ -127,7 +127,7 @@ case $1 in
 		# Install Overlay Folders
 		# -----------------------
 		
-		cp -r $_CURRENTDIR/rootfs/* $_BUILDDIR
+		cp -r $_CURRENTDIR/rootfs-overlay/* $_BUILDDIR
 		cp $_CURRENTDIR/debs/*deb $_BUILDDIR/root/
 		chroot $_BUILDDIR bash -c 'dpkg -i /root/*deb'
 
