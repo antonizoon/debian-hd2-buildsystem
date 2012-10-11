@@ -46,31 +46,52 @@ packages=`sed -e 's/\#.*//' -e 's/[ ^I]*$$//' -e '/^$$/ d' packages`
 # ===============
 
 # Use current directory
-_PKGDIR=`pwd`
+_CURRENTDIR=`pwd`
 
 # create our working directory
-mkdir "$_PKGDIR/debhd2-target/"
+mkdir "$_CURRENTDIR/debhd2-target/"
 
 # Set our working directory
-_BUILDDIR="$_PKGDIR/debhd2-target"
+_BUILDDIR="$_CURRENTDIR/debhd2-target"
 
 # Build the Image
 # ===============
 
 case $1 in
+	# Build unmodified debian system
+	# ==============================
 	'-r')
+		# Create hard disk image
 		dd if=/dev/zero of=rootfs.ext4 bs=1MB count=$fssize
 		mkfs.ext4 -F rootfs.ext4
+		
+		# mount the image
 		mount rootfs.ext4 $_BUILDDIR
+		
+		# Build the image with debootstrap
 		debootstrap --verbose --arch armel --foreign sid $_BUILDDIR $mirror 
+		
 		cp /usr/bin/qemu-arm-static $_BUILDDIR/usr/bin/
+		
+		# Second stage of debootstrap
 		chroot $_BUILDDIR /debootstrap/debootstrap --second-stage
 
 		echo '\nrootfs.ext4 was created!\n'
 
 		;;
+		
+	# Make HD2-specific modifications (convert to post-install script?)
+	# ==============================
 	'-p')
+		# mount as chroot
 		mount rootfs.ext4 $_BUILDDIR
+		
+		# set hostname
+		echo $hostname > $_BUILDDIR/etc/hostname
+		
+		# =============================================== #
+		# Package Setup
+		# -------------
 		
 		# Recommended packages are still abused; we want to go as lightweight as possible
 
@@ -86,27 +107,37 @@ case $1 in
 		chroot $_BUILDDIR dpkg-reconfigure locales	
 		chroot $_BUILDDIR dpkg-reconfigure x11-common
 		chroot $_BUILDDIR /etc/init.d/ssh stop
+
+		# ================================================ #
+		# Kernel Setup
+		# ------------
 		
-		# set hostname
-
-		echo $hostname > $_BUILDDIR/etc/hostname
-
 		# make sure kernel modules get loaded
 
 		echo 'bcm4329' >> $_BUILDDIR/etc/modules
 		echo 'alsa-mix-htc-leo' >> $_BUILDDIR/etc/modules
 
+		# preset network interfaces
+		
 #		echo -e 'auto eth0\niface eth0 inet dhcp\nwpa-ssid "neostrada_12ac"\nwpa-psk "samochodzikarnia"' >> $_BUILDDIR/etc/network/interfaces
 ##		echo -e '#!/bin/sh -e\n\nping 10.0.0.1 &\n\nwhile [ 1 ]; do su -c startx '$username'; done\n\nexit 0' > $_BUILDDIR/etc/rc.local
 		echo -e '#!/bin/sh -e\n\nwhile [ 1 ]; do su -c startx '$username'; done\n\nexit 0'  > $_BUILDDIR/etc/rc.local
 
-		cp -r hd2files/rootfs/* $_BUILDDIR
-		cp hd2files/debs/*deb $_BUILDDIR/root/
+		# ================================================= #
+		# Install Overlay Folders
+		# -----------------------
+		
+		cp -r $_CURRENTDIR/rootfs/* $_BUILDDIR
+		cp $_CURRENTDIR/debs/*deb $_BUILDDIR/root/
 		chroot $_BUILDDIR bash -c 'dpkg -i /root/*deb'
 
 		# prevent upgrading udev to newer version (it has problems with 2.6.32 kernel that we currently use)
 
 		chroot $_BUILDDIR aptitude hold libudev0 udev
+		
+		# ================================================ #
+		# Create users
+		# ------------
 
 		# set root password
 
@@ -122,7 +153,9 @@ case $1 in
 		chroot $_BUILDDIR addgroup $username netdev
 		echo -e '\nUser account '$username' created!\n'
 
+		# ================================================ #
 		# clean up
+		# --------
 
 		rm $_BUILDDIR/root/*deb
 		rm $_BUILDDIR/usr/bin/qemu-arm-static
