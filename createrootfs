@@ -42,81 +42,90 @@ source options.conf
 # use a list of packages to install, sed is used to parse comments
 packages=`sed -e 's/\#.*//' -e 's/[ ^I]*$$//' -e '/^$$/ d' packages`
 
-# Build the Image
+# Directory Setup
 # ===============
 
+# Use current directory
+$_PKGDIR=`pwd`
+
 # create our working directory
-mkdir /debhd2-target/
+mkdir "$_PKGDIR/debhd2-target/"
+
+# Set our working directory
+$_BUILDDIR="$_PKGDIR/debhd2target"
+
+# Build the Image
+# ===============
 
 case $1 in
 	'-r')
 		dd if=/dev/zero of=rootfs.ext4 bs=1MB count=$fssize
 		mkfs.ext4 -F rootfs.ext4
-		mount rootfs.ext4 /debhd2-target/
-		debootstrap --verbose --arch armel --foreign sid /debhd2-target/ $mirror 
-		cp /usr/bin/qemu-arm-static /debhd2-target/usr/bin/
-		chroot /debhd2-target/ /debootstrap/debootstrap --second-stage
+		mount rootfs.ext4 $_BUILDDIR
+		debootstrap --verbose --arch armel --foreign sid $_BUILDDIR $mirror 
+		cp /usr/bin/qemu-arm-static $_BUILDDIRusr/bin/
+		chroot $_BUILDDIR /debootstrap/debootstrap --second-stage
 
 		echo '\nrootfs.ext4 was created!\n'
 
 		;;
 	'-p')
-		mount rootfs.ext4 /debhd2-target/
+		mount rootfs.ext4 $_BUILDDIR
 		
 		# Recommended packages are still abused; we want to go as lightweight as possible
 
-		echo 'APT::Install-Recommends "0";' >> /debhd2-target/etc/apt/apt.conf
-		echo 'APT::Install-Suggests "0";' >> /debhd2-target/etc/apt/apt.conf
+		echo 'APT::Install-Recommends "0";' >> $_BUILDDIRetc/apt/apt.conf
+		echo 'APT::Install-Suggests "0";' >> $_BUILDDIRetc/apt/apt.conf
 
 		# configure apt and install packages
 
-		echo 'deb '$mirror' unstable main' > /debhd2-target/etc/apt/sources.list
-		chroot /debhd2-target/ aptitude update
-		chroot /debhd2-target/ aptitude install $packages
-		chroot /debhd2-target/ aptitude clean
-		chroot /debhd2-target/ dpkg-reconfigure locales	
-		chroot /debhd2-target/ dpkg-reconfigure x11-common
-		chroot /debhd2-target/ /etc/init.d/ssh stop
+		echo 'deb '$mirror' unstable main' > $_BUILDDIRetc/apt/sources.list
+		chroot $_BUILDDIR aptitude update
+		chroot $_BUILDDIR aptitude install $packages
+		chroot $_BUILDDIR aptitude clean
+		chroot $_BUILDDIR dpkg-reconfigure locales	
+		chroot $_BUILDDIR dpkg-reconfigure x11-common
+		chroot $_BUILDDIR /etc/init.d/ssh stop
 		
 		# set hostname
 
-		echo $hostname > /debhd2-target/etc/hostname
+		echo $hostname > $_BUILDDIRetc/hostname
 
 		# make sure kernel modules get loaded
 
-		echo 'bcm4329' >> /debhd2-target/etc/modules
-		echo 'alsa-mix-htc-leo' >> /debhd2-target/etc/modules
+		echo 'bcm4329' >> $_BUILDDIRetc/modules
+		echo 'alsa-mix-htc-leo' >> $_BUILDDIRetc/modules
 
-#		echo -e 'auto eth0\niface eth0 inet dhcp\nwpa-ssid "neostrada_12ac"\nwpa-psk "samochodzikarnia"' >> /debhd2-target/etc/network/interfaces
-##		echo -e '#!/bin/sh -e\n\nping 10.0.0.1 &\n\nwhile [ 1 ]; do su -c startx '$username'; done\n\nexit 0' > /debhd2-target/etc/rc.local
-		echo -e '#!/bin/sh -e\n\nwhile [ 1 ]; do su -c startx '$username'; done\n\nexit 0'  > /debhd2-target/etc/rc.local
+#		echo -e 'auto eth0\niface eth0 inet dhcp\nwpa-ssid "neostrada_12ac"\nwpa-psk "samochodzikarnia"' >> $_BUILDDIRetc/network/interfaces
+##		echo -e '#!/bin/sh -e\n\nping 10.0.0.1 &\n\nwhile [ 1 ]; do su -c startx '$username'; done\n\nexit 0' > $_BUILDDIRetc/rc.local
+		echo -e '#!/bin/sh -e\n\nwhile [ 1 ]; do su -c startx '$username'; done\n\nexit 0'  > $_BUILDDIRetc/rc.local
 
-		cp -r hd2files/rootfs/* /debhd2-target/
-		cp hd2files/debs/*deb /debhd2-target/root/
-		chroot /debhd2-target/ bash -c 'dpkg -i /root/*deb'
+		cp -r hd2files/rootfs/* $_BUILDDIR
+		cp hd2files/debs/*deb $_BUILDDIRroot/
+		chroot $_BUILDDIR bash -c 'dpkg -i /root/*deb'
 
 		# prevent upgrading udev to newer version (it has problems with 2.6.32 kernel that we currently use)
 
-		chroot /debhd2-target/ aptitude hold libudev0 udev
+		chroot $_BUILDDIR aptitude hold libudev0 udev
 
 		# set root password
 
 		echo -e '\nPlease enter your desired root password.\n'
-		chroot /debhd2-target/ bash -c 'passwd'
+		chroot $_BUILDDIR bash -c 'passwd'
 		echo -e '\nRoot password set!\n'
 
 		# create regular user
 
 		echo -e '\nPlease enter data for your regular user '$username'.\n'
-		chroot /debhd2-target/ bash -c 'adduser '$username
-		chroot /debhd2-target/ addgroup $username audio
-		chroot /debhd2-target/ addgroup $username netdev
+		chroot $_BUILDDIR bash -c 'adduser '$username
+		chroot $_BUILDDIR addgroup $username audio
+		chroot $_BUILDDIR addgroup $username netdev
 		echo -e '\nUser account '$username' created!\n'
 
 		# clean up
 
-		rm /debhd2-target/root/*deb
-		rm /debhd2-target/usr/bin/qemu-arm-static
+		rm $_BUILDDIRroot/*deb
+		rm $_BUILDDIRusr/bin/qemu-arm-static
 
 		echo -e '\nrootfs.ext4 was customized!\n'
 
@@ -125,7 +134,7 @@ esac
 
 # clean up
 
-umount /debhd2-target/
-rm -r /debhd2-target/
+umount $_BUILDDIR
+rm -r $_BUILDDIR
 
 exit 0
