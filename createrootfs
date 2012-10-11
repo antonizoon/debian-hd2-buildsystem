@@ -20,10 +20,10 @@
 ## './createrootfs -r' - creates generic rootfs, without 	##
 ## majority of customizations					##
 ## './createrootfs -p' - customizes rootfs created by 		##
-## './install -r' to suit HTC HD2				##
+## './createrootfs -r' to suit HTC HD2				##
 ##								##
 ## To generate full rootfs from scratch, you have to run both	## 
-## of these commands, as in './install -r && ./install -p'	##
+## of commands, as in './createrootfs -r && ./createrootfs -p'	##
 ##								##
 ## IMPORTANT!!!							##
 ## ============							##

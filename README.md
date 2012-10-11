@@ -2,6 +2,14 @@
 
 > *[Original thread on XDA](http://forum.xda-developers.com/showthread.php?t=1729130)*
 
+## Introduction
+
+This is a project to create a modern, viable build of Linux on the HD2 for MAGLDR, cLK, and possibly haret. The original work was made by "bardzudny" of XDA on Debian Linux with E17 Mobile. A dev called "antonizoon" is currently improving the buildsystem and looking into using the buildsystem for Ubuntu or Kubuntu Active.
+
+Full builds can be found in the download links at the bottom. This git repository includes everything needed to create a rootfs for a chroot. Basically, it installs the packages needed and sets up the system. We also have a kernel git repo with a custom kernel based on one from HTC-Linux 
+
+The buildsystem is designed with a profile methodology, like ArchISO or Larch. Basically, just edit the `packages` file to add or remove packages from your build, or edit the `options.conf` to set the username, the source repository, or other things.
+
 ## Foreword from bardzudny
 
 Lately I have found myself experimenting with Debian on my beloved Leo. It's very much WIP, but even right now it may be fun to play around for some. And most of the stuff that *doesn't* work, well, solutions are in the line of sight.
@@ -37,7 +45,6 @@ It boots directly into an Enlightement 17 Mobile desktop and allows you to conne
 * Landscape mode (easy)
 * Hardware buttons (easy)
 * Bluetooth (at least partial support should be easy)
-* Have an option for NativeSD support
 * ??? to be continued
 
 ## Wish-list (the less important stuff):
@@ -47,11 +54,22 @@ It boots directly into an Enlightement 17 Mobile desktop and allows you to conne
 * Bully someone into cooking newer kernel (2.6.32 is old)
 * If the above doesn't work, backport brcmfmac wifi driver to current kernel
 * Compass, GPS, camera, multitouch (aka the stuff not many really care about)
+* Have an option for NativeSD support
 * ??? to be continued
+
+## Install
+
+This ROM supports either MAGLDR or cLK "AD SD Boot". (Haret has not been tested, but it should work...) Here are instructions for MAGLDR and cLK.
+
+1. Download the builds at the end of this README file and copy the contents to a "debian" folder on your SDCard.
+2. (MAGLDR) Boot your HD2 into the bootloader menu, go to *Settings -> Boot Source -> AD SD Dir* and then select the "debian" folder.
+3. (MAGLDR) Go back to the menu and select "Boot AD SD" to start it up.
 
 ## Help out
 
-If you want to help me in the effort to make this port work perfectly, this git repository has all the sources you need to reconstruct my rootfs on your own. There are some files and there is a dirty bash script ("createrootfs") that does everything that has to be done. Instructions are inside of it.
+If you want to help me in the effort to make this port work perfectly, check the TODO and call antonizoon so he can help you out. This git repository has all the sources you need to reconstruct my rootfs on your own. 
+
+There are some files and there is a dirty bash script ("createrootfs") that does everything. You can configure the packages added and options using the `packages` and `options.conf` files. Instructions are inside of these files.
 
 There is a lot of valuable information on [htc-linux wiki](http://htc-linux.org). I'm available in this topic, on pm, and on #htc-linux freenode channel.
 
