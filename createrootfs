@@ -128,7 +128,7 @@ case $1 in
 		# -----------------------
 		
 		cp -r $_CURRENTDIR/rootfs/* $_BUILDDIR
-		cp $_CURRENTDIR/packages/*deb $_BUILDDIR/root/
+		cp $_CURRENTDIR/debs/*deb $_BUILDDIR/root/
 		chroot $_BUILDDIR bash -c 'dpkg -i /root/*deb'
 
 		# prevent upgrading udev to newer version (it has problems with 2.6.32 kernel that we currently use)
