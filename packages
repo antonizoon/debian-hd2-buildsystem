@@ -1,0 +1,37 @@
+## ============================================================ ##
+## 		Debian HD2 Buildsystem Packages			##
+## ============================================================ ##
+##								##
+## Place package names from the Debian repositories here	##
+## to have them installed to the system.			##
+## You can use bash-style comments in this file.		##
+## ============================================================ ##
+
+# Sound
+# =====
+
+alsa-utils
+
+# Networking
+# ==========
+
+openssh-server
+wicd-gtk
+wpasupplicant
+
+# X Windows
+# =========
+
+xserver-xorg
+xserver-xorg-input-tslib
+xinit
+screen
+xterm
+
+# Desktop Environment
+# ===================
+
+e17				# Installs Enlightenment 17
+libts-bin
+psmisc
+locales 

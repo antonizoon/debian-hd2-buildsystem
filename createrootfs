@@ -54,6 +54,12 @@ mkdir "$_CURRENTDIR/debhd2-target/"
 # Set our working directory
 _BUILDDIR="$_CURRENTDIR/debhd2-target"
 
+# Set overlay directory
+_OVERLAYDIR="$_CURRENTDIR/rootfs-overlay"
+
+# Set directory of deb packages
+_DEBDIR="$_CURRENTDIR/debs"
+
 # Build the Image
 # ===============
 
@@ -127,8 +133,8 @@ case $1 in
 		# Install Overlay Folders
 		# -----------------------
 		
-		cp -r $_CURRENTDIR/rootfs-overlay/* $_BUILDDIR
-		cp $_CURRENTDIR/debs/*deb $_BUILDDIR/root/
+		cp -r $_OVERLAYDIR/* $_BUILDDIR
+		cp $_DEBDIR/*deb $_BUILDDIR/root/
 		chroot $_BUILDDIR bash -c 'dpkg -i /root/*deb'
 
 		# prevent upgrading udev to newer version (it has problems with 2.6.32 kernel that we currently use)
