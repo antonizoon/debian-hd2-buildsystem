@@ -63,7 +63,7 @@ case $1 in
 		mkfs.ext4 -F rootfs.ext4
 		mount rootfs.ext4 $_BUILDDIR
 		debootstrap --verbose --arch armel --foreign sid $_BUILDDIR $mirror 
-		cp /usr/bin/qemu-arm-static $_BUILDDIRusr/bin/
+		cp /usr/bin/qemu-arm-static $_BUILDDIR/usr/bin/
 		chroot $_BUILDDIR /debootstrap/debootstrap --second-stage
 
 		echo '\nrootfs.ext4 was created!\n'
@@ -74,12 +74,12 @@ case $1 in
 		
 		# Recommended packages are still abused; we want to go as lightweight as possible
 
-		echo 'APT::Install-Recommends "0";' >> $_BUILDDIRetc/apt/apt.conf
-		echo 'APT::Install-Suggests "0";' >> $_BUILDDIRetc/apt/apt.conf
+		echo 'APT::Install-Recommends "0";' >> $_BUILDDIR/etc/apt/apt.conf
+		echo 'APT::Install-Suggests "0";' >> $_BUILDDIR/etc/apt/apt.conf
 
 		# configure apt and install packages
 
-		echo 'deb '$mirror' unstable main' > $_BUILDDIRetc/apt/sources.list
+		echo 'deb '$mirror' unstable main' > $_BUILDDIR/etc/apt/sources.list
 		chroot $_BUILDDIR aptitude update
 		chroot $_BUILDDIR aptitude install $packages
 		chroot $_BUILDDIR aptitude clean
@@ -89,19 +89,19 @@ case $1 in
 		
 		# set hostname
 
-		echo $hostname > $_BUILDDIRetc/hostname
+		echo $hostname > $_BUILDDIR/etc/hostname
 
 		# make sure kernel modules get loaded
 
-		echo 'bcm4329' >> $_BUILDDIRetc/modules
-		echo 'alsa-mix-htc-leo' >> $_BUILDDIRetc/modules
+		echo 'bcm4329' >> $_BUILDDIR/etc/modules
+		echo 'alsa-mix-htc-leo' >> $_BUILDDIR/etc/modules
 
-#		echo -e 'auto eth0\niface eth0 inet dhcp\nwpa-ssid "neostrada_12ac"\nwpa-psk "samochodzikarnia"' >> $_BUILDDIRetc/network/interfaces
-##		echo -e '#!/bin/sh -e\n\nping 10.0.0.1 &\n\nwhile [ 1 ]; do su -c startx '$username'; done\n\nexit 0' > $_BUILDDIRetc/rc.local
-		echo -e '#!/bin/sh -e\n\nwhile [ 1 ]; do su -c startx '$username'; done\n\nexit 0'  > $_BUILDDIRetc/rc.local
+#		echo -e 'auto eth0\niface eth0 inet dhcp\nwpa-ssid "neostrada_12ac"\nwpa-psk "samochodzikarnia"' >> $_BUILDDIR/etc/network/interfaces
+##		echo -e '#!/bin/sh -e\n\nping 10.0.0.1 &\n\nwhile [ 1 ]; do su -c startx '$username'; done\n\nexit 0' > $_BUILDDIR/etc/rc.local
+		echo -e '#!/bin/sh -e\n\nwhile [ 1 ]; do su -c startx '$username'; done\n\nexit 0'  > $_BUILDDIR/etc/rc.local
 
 		cp -r hd2files/rootfs/* $_BUILDDIR
-		cp hd2files/debs/*deb $_BUILDDIRroot/
+		cp hd2files/debs/*deb $_BUILDDIR/root/
 		chroot $_BUILDDIR bash -c 'dpkg -i /root/*deb'
 
 		# prevent upgrading udev to newer version (it has problems with 2.6.32 kernel that we currently use)
@@ -124,8 +124,8 @@ case $1 in
 
 		# clean up
 
-		rm $_BUILDDIRroot/*deb
-		rm $_BUILDDIRusr/bin/qemu-arm-static
+		rm $_BUILDDIR/root/*deb
+		rm $_BUILDDIR/usr/bin/qemu-arm-static
 
 		echo -e '\nrootfs.ext4 was customized!\n'
 
