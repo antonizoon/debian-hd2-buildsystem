@@ -82,7 +82,7 @@ case $1 in
 		# Second stage of debootstrap
 		chroot $_BUILDDIR /debootstrap/debootstrap --second-stage
 
-		echo '\nrootfs.ext4 was created!\n'
+		echo '\nrootfs.ext4 was created! Run ./createrootfs -p to add HD2-specific customizations...\n'
 
 		;;
 		
@@ -147,13 +147,13 @@ case $1 in
 
 		# set root password
 
-		echo -e '\nPlease enter your desired root password.\n'
+		echo -e '\nPlease enter your desired root password (recommended to set to '$username').\n'
 		chroot $_BUILDDIR bash -c 'passwd'
 		echo -e '\nRoot password set!\n'
 
 		# create regular user
 
-		echo -e '\nPlease enter data for your regular user '$username'.\n'
+		echo -e '\nPlease enter data for your regular user '$username' (recommended to set the same as username).\n'
 		chroot $_BUILDDIR bash -c 'adduser '$username
 		chroot $_BUILDDIR addgroup $username audio
 		chroot $_BUILDDIR addgroup $username netdev
