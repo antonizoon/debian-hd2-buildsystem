@@ -1,117 +1,83 @@
-# Debian Linux on HTC HD2 (HTC Leo) with E17
+# Debian Linux on HD2 Buildsystem
 
-> *[Original thread on XDA](http://forum.xda-developers.com/showthread.php?t=1729130)*
+This file outlines the Debian buildsystem in this git repository from top to bottom, so you can make your own system for HD2. More info about the build can be found in the `BUILD_INFO.md` file in this git repository, or at the [Original thread on XDA](http://forum.xda-developers.com/showthread.php?t=1729130).
 
-## Introduction
+## Debian Buildsystem
 
-This is a project to create a modern, viable build of Linux on the HD2 for MAGLDR, cLK, and possibly haret. The original work was made by "bardzudny" of XDA on Debian Linux with E17 Mobile. A dev called "antonizoon" is currently improving the buildsystem and looking into using the buildsystem for Ubuntu or Kubuntu Active.
+This is a buildsystem that creates the `rootfs` of the Linux system. It is designed for `deb/APT`-based distros (Debian, Ubuntu, Linux Mint, etc).
 
-Full builds can be found in the download links at the bottom. This git repository includes everything needed to create a rootfs for a chroot. Basically, it installs the packages needed and sets up the system. We also have a kernel git repo with a custom kernel based on one from HTC-Linux 
+### Required Packages
 
-The buildsystem is designed with a profile methodology, like ArchISO or Larch. Basically, just edit the `packages` file to add or remove packages from your build, or edit the `options.conf` to set the username, the source repository, or other things.
+* binfmt-support
+* qemu-arm-static
+* debootstrap
 
-## Foreword from bardzudny
+There may be more...
 
-Lately I have found myself experimenting with Debian on my beloved Leo. It's very much WIP, but even right now it may be fun to play around for some. And most of the stuff that *doesn't* work, well, solutions are in the line of sight.
+### `createrootfs`
 
-I won't have time to finish it anytime soon. So, partly in hope someone will join the effort, and partly to simply make sure I won't lose effects of my work in the darkest corners of my hard drive, I upload it as it is.
+This script takes in a list of packages, some configuration options, and downloads and installs those packages to create the Linux system. It then creates a rootfs image from that so that the whole system can be put in one nice little file.
 
-It's very much bare-bones Debian Unstable system. To install it, copy all three unpacked files (rootfs.ext4, zImage, initrd.gz) to "debian" directory on your SD card. Then, choose this directory in MAGLDR settings. Then boot from SD.
+This script has two options, which must be run one after another as root to make a complete system for the HD2.
 
-It boots directly into an Enlightement 17 Mobile desktop and allows you to connect to wifi and launch terminal (and install any software you want using `apt-get`/`aptitude`).
+* `./createrootfs -r` - creates generic rootfs, without majority of customizations
+* `./createrootfs -p` - customizes rootfs created by `./createrootfs -r` to suit HTC HD2
 
-## Features:
+Run them as root with something like `./createrootfs -r && ./createrootfs -p`
 
-* Touchscreen, UI works perfectly fine
-* Wifi works perfectly fine too
-* Sound kinda works (playback is too fast for me, please test)
-* It's full Debian GNU/Linux - 15901141666 packages to `apt-get`!
+### `options.conf`
 
-## Various technical info
+This contains the options to be passed to the script. There are just a few:
 
-* Kernel based on `linux_on_wince_htc` from gitorious with some modifications:
-  - applied USB host patch by liiochen
-  - applied patch from tytung kernel that enables ALSA driver to be compiled as module (without that it wouldn't work at all)
-  - custom defconfig
-* Rootfs size is 1GB. Filesystem is ext4 (to avoid data corruption).
-* Window manager is E17, it's optimized for phones, very beautiful, and very impressive overall. Network manager is Wicd.
-* Also installed: Xterm, SSH server.
-* Default username is `htcleo`. Default password for this account is `htcleo`. Default root password is...`htcleo`.
-* As it is Debian Unstable, anything can break at any time and not much can be done about it. I also recommend using `aptitude` over `apt-get` (it is better at solving dependency problems).
+* Filesystem Size: Sets the size of the filesystem image, in megabytes. Increase as needed.
+* Repository/Mirror: Sets the server to download the packages from. The repository you pull from determines which distribution you are using.
+* Hostname: Sets the network hostname of the computer: basically, it's nickname.
+* Username: This sets the name of the user that will run the system. The script will also prompt you to set the root and user passwords, so it's good to set it to the same thing by default. The default is `htcleo`.
 
-## Important To-Do:
+### `packages`
 
-* Phone functionality & suspend/resume (all of this should be supported! sadly, fso-deviced in Debian repositories is currently broken)
-* Landscape mode (easy)
-* Hardware buttons (easy)
-* Bluetooth (at least partial support should be easy)
-* ??? to be continued
+This contains the list of packages to be installed onto the system. You can find these package names by searching in the repositories of your Linux distro (ex: packages.debian.org). `APT` will also download all needed dependencies, so no need to worry about getting every single one.
 
-## Wish-list (the less important stuff):
+### Wishlist
 
-* Switch to armhf for performance gains (should be easy)
-* At least partial hardware acceleration (should be possible thanks to xf86-video-msm driver)
-* Bully someone into cooking newer kernel (2.6.32 is old)
-* If the above doesn't work, backport brcmfmac wifi driver to current kernel
-* Compass, GPS, camera, multitouch (aka the stuff not many really care about)
-* Have an option for NativeSD support
-* ??? to be continued
+* ArchISO style filesystem overlays (though it might be less useful in debian...)
+* Postinstall bash scripts to be run before build (for postinstall configuration)
+* Automatically set root and user passwords from configuration file...
 
-## Install
+## AD SD System Design
 
-This ROM supports either MAGLDR or cLK "AD SD Boot". (Haret has not been tested, but it should work...) Here are instructions for MAGLDR and cLK.
+This version of Linux is based on a configuration similar to that of Android on SDCard for HD2. There is an `initrd.gz` for startup, a `zImage` with the kernel, and a `rootfs.ext4` generated by the buildsystem. All of these files are to be put in a `debian` folder on the SDCard.
 
-1. Download the builds at the end of this README file and copy the contents to a "debian" folder on your SDCard.
-2. (MAGLDR) Boot your HD2 into the bootloader menu, go to *Settings -> Boot Source -> AD SD Dir* and then select the "debian" folder.
-3. (MAGLDR) Go back to the menu and select "Boot AD SD" to start it up.
+### initrd.gz
 
-## Help out
+Contains all the basic system tools and the startup script to boot the system. It has a folder called `initrd` with an init script, and a whole bunch of binary tools in `bin`. A prebuilt one can be found in `sd-startup`.
 
-If you want to help me in the effort to make this port work perfectly, check the TODO and call antonizoon so he can help you out. This git repository has all the sources you need to reconstruct my rootfs on your own. 
+### zImage
 
-There are some files and there is a dirty bash script ("createrootfs") that does everything. You can configure the packages added and options using the `packages` and `options.conf` files. Instructions are inside of these files.
+This contains the compressed binary image of the Linux kernel itself. This is generated by the custom kernel sources for the HD2 found here (link). A prebuilt one can be found in `sd-startup`.
 
-There is a lot of valuable information on [htc-linux wiki](http://htc-linux.org). I'm available in this topic, on pm, and on #htc-linux freenode channel.
+### rootfs.ext4
 
-Big thanks to #htc-linux, Cotulla, liiochen, tytung, dcordes, many others I forgot about and will add later.
+This contains the system itself, and all that you would expect a Linux hard drive to have. It is created by the buildsystem. By default it is set to 1000 MB (~1 GB), but you can change this to something bigger while building. It is also possible to change the size afterwards by adding zeros to the image (link?).
 
-### Kernel Sources
+## NativeSD System Design
 
-The kernel sources are in a seperate file found in the links below or in this (link needed) git repository.
+It might be possible to move the system to the new NativeSD for greater speed and partitions larger than 4 GB (the limits of FAT filesizes). Perhaps a dual-boot with Android could be possible? Or we could use the Aroma Installer and the recovery? Needs research.
 
-[Please refer to this htc-linux wiki page for compiling](http://htc-linux.org/wiki/index.php?title=QuickDeveloperStartGuide#Kernel). Use htcleo-gnu_defconfig (it's in arch/arm/configs/ directory). 
+## Booting Linux from SDCard
 
-## Links, Files and Mirrors
+Place the `initrd.gz`, `zImage`, and `rootfs.ext4` files in a `debian` folder, it is now possible to boot the system. Move the `debian` folder to the top folder of the SDCard and plug it into your HD2.
 
-### Debian Linux for HD2 with E17
+### MAGLDR
 
-MD5: 9f5a9961d8ace10d38f7ea493a12ab4a
+1. Turn on your phone and get to the bootloader menu. To do so, hold the power button until you see a menu.
+2. Go to **Settings -> Boot Settings -> AD SD Dir** and set the boot directory to `debian`.
+3. Go back to the bootloader menu and select **2. Boot AD SD** to start Linux.
 
-* [Multiupload.nl {broken}](http://www.multiupload.nl/8D7ZS99UTX)
-* http://depositfiles.com/files/vinahlreg
-* http://www.putlocker.com/file/28C8D9BC78297F7D
-* http://www.uploadboost.com/gzj2wuhrzi4q/debian_hd2_v0.1_alpha.tar.gz
-* http://turbobit.net/0456ajzoskha.html
-* http://freakshare.com/files/rifre0d6/debian_hd2_v0.1_alpha.tar.gz.html
-* http://www.filefactory.com/file/4zinabznaplb/debian_hd2_v0.1_alpha.tar.gz
-* http://oron.com/yuqqf116hopw
-* http://bayfiles.com/file/eneR/zQ2A99/debian_hd2_v0.1_alpha.tar.gz
+### cLK
 
-### Source Code
+(needs instructions, check Installing Android to SD on cLK)
 
-This is the original source code from bardzudny. However, I (antonizoon) have made a number of modifications to it, all of which can be found in this git repository. 
+### Haret
 
-* http://www.multiupload.nl/N7BNQVR02K
-* http://www.putlocker.com/file/066BAD34ADB41C7A
-* http://www.uploadboost.com/yx2xyz7nvbth/debian_hd2_v0.1_alpha_diy.7z
-* http://turbobit.net/ytv4osp0sue6.html
-* http://freakshare.com/files/9mofvzu7/debian_hd2_v0.1_alpha_diy.7z.html
-* http://www.filefactory.com/file/2b4v06nzyye7/debian_hd2_v0.1_alpha_diy.7z
-* http://oron.com/vzwltl06p9mr
-* http://bayfiles.com/file/entZ/5u1zQP/debian_hd2_v0.1_alpha_diy.7z
-
-### Kernel Source Code
-
-MD5: c698454af38ad7ed3dbec120eae84daa
-
-* http://www.multiupload.nl/IWL07GL78D
+Haret (Linux from Windows Mobile 6) might work too, but we're hard-pressed to find anyone that still uses poor little WM6, so contact us if it works or doesn't work.
