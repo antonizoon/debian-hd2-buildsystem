@@ -1,83 +1,67 @@
 # Debian Linux on HD2 Buildsystem
 
-This file outlines the Debian buildsystem in this git repository from top to bottom, so you can make your own system for HD2. More info about the build can be found in the `BUILD_INFO.md` file in this git repository, or at the [Original thread on XDA](http://forum.xda-developers.com/showthread.php?t=1729130).
+This file outlines the Debian buildsystem in this git repository from top to bottom, so you can make your own system for HD2. 
 
-## Debian Buildsystem
+More info about the build can be found in the `BUILD_INFO.md` file in this git repository, or at the [Original thread on XDA](http://forum.xda-developers.com/showthread.php?t=1729130).
 
-This is a buildsystem that creates the `rootfs` of the Linux system. It is designed for `deb/APT`-based distros (Debian, Ubuntu, Linux Mint, etc).
+## Quick Build
 
-### Required Packages
+These steps will create a Debian Unstable E17 system.
 
-* binfmt-support
-* qemu-arm-static
-* debootstrap
+If you want to add more packages, add their names to the `packages` file. If you want to mess with options, edit the `options.conf` file. If you want to have some files placed into the image, put them in the `rootfs-overlay`.
 
-There may be more...
+Run these steps in Debian/Ubuntu to make a Linux filesystem image:
 
-### `createrootfs`
+		# Become Root
+		sudo su
+		# Install dependencies
+		apt-get install binfmt-support qemu-arm-static debootstrap
+		# Build a filesystem image
+		`./createrootfs -r && ./createrootfs -p`
+		
+You will get a `.rootfs.ext4` file. Just move this image to the `sd-startup` folder, and copy the whole folder to your HD2's sdcard. After that, set your bootloader to boot using this directory, and you will get Linux on HD2!
 
-This script takes in a list of packages, some configuration options, and downloads and installs those packages to create the Linux system. It then creates a rootfs image from that so that the whole system can be put in one nice little file.
+More detailed information about this buildsystem can be found in the `docs` folder of this repository.
 
-This script has two options, which must be run one after another as root to make a complete system for the HD2.
+### Kernel Sources
 
-* `./createrootfs -r` - creates generic rootfs, without majority of customizations
-* `./createrootfs -p` - customizes rootfs created by `./createrootfs -r` to suit HTC HD2
+The kernel sources are in a seperate file found in the links below or in this (link needed) git repository.
 
-Run them as root with something like `./createrootfs -r && ./createrootfs -p`
+[Please refer to this htc-linux wiki page for compiling](http://htc-linux.org/wiki/index.php?title=QuickDeveloperStartGuide#Kernel). Use htcleo-gnu_defconfig (it's in arch/arm/configs/ directory). 
 
-### `options.conf`
+## Features:
 
-This contains the options to be passed to the script. There are just a few:
+* It's full Debian GNU/Linux - 15901141666 packages to `apt-get`!
+* Touchscreen, UI works perfectly fine
+* Wifi works perfectly fine too
+* Sound kinda works (playback is too fast for me, please test)
 
-* Filesystem Size: Sets the size of the filesystem image, in megabytes. Increase as needed.
-* Repository/Mirror: Sets the server to download the packages from. The repository you pull from determines which distribution you are using.
-* Hostname: Sets the network hostname of the computer: basically, it's nickname.
-* Username: This sets the name of the user that will run the system. The script will also prompt you to set the root and user passwords, so it's good to set it to the same thing by default. The default is `htcleo`.
+## Important To-Do:
 
-### `packages`
+* Phone functionality & suspend/resume (all of this should be supported! sadly, fso-deviced in Debian repositories is currently broken)
+* Landscape mode (easy)
+* Hardware buttons (easy)
+* Bluetooth (at least partial support should be easy)
+* ??? to be continued
 
-This contains the list of packages to be installed onto the system. You can find these package names by searching in the repositories of your Linux distro (ex: packages.debian.org). `APT` will also download all needed dependencies, so no need to worry about getting every single one.
+## Wish-list (the less important stuff):
 
-### Wishlist
+* Switch to armhf for performance gains (should be easy)
+* At least partial hardware acceleration (should be possible thanks to xf86-video-msm driver)
+* Bully someone into cooking newer kernel (2.6.32 is old)
+* If the above doesn't work, backport brcmfmac wifi driver to current kernel
+* Compass, GPS, camera, multitouch (aka the stuff not many really care about)
+* Have an option for NativeSD support
+* ??? to be continued
 
-* ArchISO style filesystem overlays (though it might be less useful in debian...)
-* Postinstall bash scripts to be run before build (for postinstall configuration)
-* Automatically set root and user passwords from configuration file...
+## Various technical info
 
-## AD SD System Design
-
-This version of Linux is based on a configuration similar to that of Android on SDCard for HD2. There is an `initrd.gz` for startup, a `zImage` with the kernel, and a `rootfs.ext4` generated by the buildsystem. All of these files are to be put in a `debian` folder on the SDCard.
-
-### initrd.gz
-
-Contains all the basic system tools and the startup script to boot the system. It has a folder called `initrd` with an init script, and a whole bunch of binary tools in `bin`. A prebuilt one can be found in `sd-startup`.
-
-### zImage
-
-This contains the compressed binary image of the Linux kernel itself. This is generated by the custom kernel sources for the HD2 found here (link). A prebuilt one can be found in `sd-startup`.
-
-### rootfs.ext4
-
-This contains the system itself, and all that you would expect a Linux hard drive to have. It is created by the buildsystem. By default it is set to 1000 MB (~1 GB), but you can change this to something bigger while building. It is also possible to change the size afterwards by adding zeros to the image (link?).
-
-## NativeSD System Design
-
-It might be possible to move the system to the new NativeSD for greater speed and partitions larger than 4 GB (the limits of FAT filesizes). Perhaps a dual-boot with Android could be possible? Or we could use the Aroma Installer and the recovery? Needs research.
-
-## Booting Linux from SDCard
-
-Place the `initrd.gz`, `zImage`, and `rootfs.ext4` files in a `debian` folder, it is now possible to boot the system. Move the `debian` folder to the top folder of the SDCard and plug it into your HD2.
-
-### MAGLDR
-
-1. Turn on your phone and get to the bootloader menu. To do so, hold the power button until you see a menu.
-2. Go to **Settings -> Boot Settings -> AD SD Dir** and set the boot directory to `debian`.
-3. Go back to the bootloader menu and select **2. Boot AD SD** to start Linux.
-
-### cLK
-
-(needs instructions, check Installing Android to SD on cLK)
-
-### Haret
-
-Haret (Linux from Windows Mobile 6) might work too, but we're hard-pressed to find anyone that still uses poor little WM6, so contact us if it works or doesn't work.
+* Kernel based on `linux_on_wince_htc` from gitorious with some modifications:
+  - applied USB host patch by liiochen
+  - applied patch from tytung kernel that enables ALSA driver to be compiled as module (without that it wouldn't work at all)
+  - custom defconfig
+* Rootfs size is 1GB. Filesystem is ext4 (to avoid data corruption).
+* Window manager is E17, it's optimized for phones, very beautiful, and very impressive overall. Network manager is Wicd.
+* Also installed: Xterm, SSH server.
+* Default username is `htcleo`. Default password for this account is `htcleo`. Default root password is...`htcleo`.
+* As it is Debian Unstable, anything can break at any time and not much can be done about it. I also recommend using `aptitude` over `apt-get` (it is better at solving dependency problems).

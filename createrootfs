@@ -1,36 +1,36 @@
 #!/bin/bash
 
 ## ============================================================ ##
-## 			Debian HD2 Buildsystem			##
+## 			Debian HD2 Buildsystem
 ## ============================================================ ##
-## 								##
-## Created by bardzuny from XDA and antonizoon (Lawrence Wu)	##
-## 								##
-## Description							##
-## ===========							##
-## This script creates a Debian Unstable rootfs for the HTC HD2 ##
-## Script is best run in Debian Unstable host system		##
-## 								##
-## Required packages (may be incomplete)			##
-## =====================================			##
-## binfmt-support, qemu-arm-static, debootstrap			##
-## 								##
-## Usage (run as root)						##
-## ===================						##
+##
+## Created by bardzuny from XDA and antonizoon (Lawrence Wu)
+## 
+## Description
+## ===========
+## This script creates a Debian Unstable rootfs for the HTC HD2
+## Script is best run in Debian Unstable host system
+## 
+## Required packages (may be incomplete)
+## =====================================
+## binfmt-support, qemu-arm-static, debootstrap
+##
+## Usage (run as root)
+## ===================
 ## './createrootfs -r' - creates generic rootfs, without 	##
-## majority of customizations					##
+## majority of customizations
 ## './createrootfs -p' - customizes rootfs created by 		##
-## './createrootfs -r' to suit HTC HD2				##
-##								##
-## To generate full rootfs from scratch, you have to run both	## 
-## of commands, as in './createrootfs -r && ./createrootfs -p'	##
-##								##
-## IMPORTANT!!!							##
-## ============							##
-## './createrootfs -p' will ask you which users should be able	## 
-## to start Xorg - it's important that you choose 'Anybody', 	##
+## './createrootfs -r' to suit HTC HD2
+##
+## To generate full rootfs from scratch, you have to run both
+## of commands, as in './createrootfs -r && ./createrootfs -p'
+##
+## IMPORTANT!!!
+## ============
+## './createrootfs -p' will ask you which users should be able
+## to start Xorg - it's important that you choose 'Anybody',
 ## or you won't be able to start Xorg as regular user!		##
-## 								##
+##
 ## ============================================================ ##
 
 # Configuration
@@ -95,7 +95,7 @@ case $1 in
 		# set hostname
 		echo $hostname > $_BUILDDIR/etc/hostname
 		
-		# =============================================== #
+		# ===============================================
 		# Package Setup
 		# -------------
 		
@@ -114,7 +114,7 @@ case $1 in
 		chroot $_BUILDDIR dpkg-reconfigure x11-common
 		chroot $_BUILDDIR /etc/init.d/ssh stop
 
-		# ================================================ #
+		# ================================================
 		# Kernel Setup
 		# ------------
 		
@@ -129,7 +129,7 @@ case $1 in
 ##		echo -e '#!/bin/sh -e\n\nping 10.0.0.1 &\n\nwhile [ 1 ]; do su -c startx '$username'; done\n\nexit 0' > $_BUILDDIR/etc/rc.local
 		echo -e '#!/bin/sh -e\n\nwhile [ 1 ]; do su -c startx '$username'; done\n\nexit 0'  > $_BUILDDIR/etc/rc.local
 
-		# ================================================= #
+		# =================================================
 		# Install Overlay Folders
 		# -----------------------
 		
@@ -141,13 +141,13 @@ case $1 in
 
 		chroot $_BUILDDIR aptitude hold libudev0 udev
 		
-		# ================================================ #
+		# ================================================
 		# Create users
 		# ------------
 
 		# set root password
 
-		echo -e '\nPlease enter your desired root password (recommended to set to '$username').\n'
+		echo -e "\nPlease enter your desired root password (recommended to set to '$username').\n"
 		chroot $_BUILDDIR bash -c 'passwd'
 		echo -e '\nRoot password set!\n'
 
@@ -159,7 +159,7 @@ case $1 in
 		chroot $_BUILDDIR addgroup $username netdev
 		echo -e '\nUser account '$username' created!\n'
 
-		# ================================================ #
+		# ================================================
 		# clean up
 		# --------
 
